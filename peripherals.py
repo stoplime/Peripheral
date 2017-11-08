@@ -28,7 +28,7 @@ class PeripheralModel(makemodel.MakeModel):
         super().__init__()
         self.focus_radius = focus_radius
 
-    def peripheral_min_split(self, x, split_size, ring_radius, focus_point):
+    def peripheral_min_split(self, x, split_size, ring_radius, focus_point, stretch=True):
         rows = split_size
         cols = int(max(x.shape[0], x.shape[1]) / ring_radius - self.focus_radius/2)
         slice_angle = (2*math.pi)/split_size
@@ -51,7 +51,7 @@ class PeripheralModel(makemodel.MakeModel):
 
         return peripheral
 
-    def peripheral_max_split(self, x, split_size, ring_radius, focus_point):
+    def peripheral_max_split(self, x, split_size, ring_radius, focus_point, stretch=True):
         rows = split_size
         cols = int(math.sqrt(x.shape[0]*x.shape[0] + x.shape[1]*x.shape[1]) / ring_radius - self.focus_radius/2 +1)
         slice_angle = (2*math.pi)/split_size
@@ -73,13 +73,14 @@ class PeripheralModel(makemodel.MakeModel):
                         peripheral[output_i, output_j, k] = x[i, j, k]
                         mask[output_i, output_j] = 1
         
-        for _slice in range(rows):
-            countPixels = np.count_nonzero(mask[_slice, :])
-            peripheral[_slice, :, :] = scipy.misc.imresize(peripheral[_slice, :countPixels, :], (cols, x.shape[2]))
+        if stretch:
+            for _slice in range(rows):
+                countPixels = np.count_nonzero(mask[_slice, :])
+                peripheral[_slice, :, :] = scipy.misc.imresize(peripheral[_slice, :countPixels, :], (cols, x.shape[2]))
 
         return peripheral
 
-    def peripheral_average_split(self, x, split_size, ring_radius, focus_point):
+    def peripheral_average_split(self, x, split_size, ring_radius, focus_point, stretch=True):
         rows = split_size
         cols = int(max(x.shape[0], x.shape[1]) / ring_radius - self.focus_radius/2)
         slice_angle = (2*math.pi)/split_size
@@ -108,12 +109,12 @@ class PeripheralModel(makemodel.MakeModel):
     
 if __name__ == "__main__":
     model = PeripheralModel()
-    test_image = mpimg.imread(expanduser("~") + "/Pictures/Wallpapers/space-wallpaper-22.jpg")
+    test_image = mpimg.imread(expanduser("~") + "/Pictures/Wallpapers/space-wallpaper-22.jpg") # 1600, 2560
     # test_image = mpimg.imread(expanduser("~") + "/Pictures/Wallpapers/test.png")
     # test_image = mpimg.imread(expanduser("~") + "/Pictures/Wallpapers/test2.png")
     imgplot = plt.imshow(test_image)
     # plt.show()
     # print(test_image.shape)
-    peripheral = model.peripheral_max_split(test_image, 360, 4, (400, 1880)) # 800, 1280
+    peripheral = model.peripheral_max_split(test_image, 360, 4, (400, 180), stretch=True) # 800, 1280
     plt.imshow(peripheral)
     plt.show()
